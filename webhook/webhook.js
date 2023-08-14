@@ -12,7 +12,7 @@ const postedData = [];
 
 // Endpoint to handle the POST request
 app.post('/your-endpoint', (req, res) => {
-  const receivedData = req.body.data;
+  const receivedData = req.body;
   postedData.push(receivedData); // Store the data
   
   console.log('Received data:', receivedData);
