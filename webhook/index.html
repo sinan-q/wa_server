@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Posted Contents</title>
+</head>
+<body>
+  <h1>Posted Contents</h1>
+  <ul id="postedData"></ul>
+
+  <script>
+    async function fetchPostedData() {
+      const response = await fetch('/your-endpoint');
+      const data = await response.json();
+
+      const postedDataList = document.getElementById('postedData');
+      data.forEach(item => {
+        const listItem = document.createElement('li');
+        listItem.textContent = JSON.stringify(item); // Convert object to string
+        postedDataList.appendChild(listItem);
+      });
+    }
+
+    fetchPostedData();
+  </script>
+</body>
+</html>
