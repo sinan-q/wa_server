@@ -205,25 +205,22 @@ const WAZIPER = {
 						}
 
 						//Add Groups for Export participants
-						if(message.message != undefined){
-							if( chat_id.includes("@g.us") ){
-	                			if(sessions[instance_id].groups == undefined){
-	                				sessions[instance_id].groups = [];
-	                			}
-
-                				var newGroup = true;
-                				sessions[instance_id].groups.forEach( async (group) => {
-                					if(group.id == chat_id){
-                						newGroup = false;
-                					}
-                				});
-
-                				if(newGroup){
-                					await WA.groupMetadata (chat_id).then( async (group) => {
-										sessions[instance_id].groups.push( { id: group.id, name: group.subject, size: group.size, desc: group.desc, participants: group.participants });
-									} ).catch( (err) => {});
-                				}
-	                		}
+						if (message.message != undefined) {
+							if (sessions[instance_id].groups != undefined) {
+								if (chat_id.includes("@g.us")) {
+									var newGroup = true;
+									sessions[instance_id].groups.forEach(async (group) => {
+										if (group.id == chat_id) {
+											newGroup = false;
+										}
+									});
+									if (newGroup) {
+										await WA.groupMetadata(chat_id).then(async (group) => {
+											sessions[instance_id].groups.push({ id: group.id, name: group.subject, size: group.size, desc: group.desc, participants: group.participants });
+										}).catch((err) => { });
+									}
+								}
+							}
 						}
 
 
