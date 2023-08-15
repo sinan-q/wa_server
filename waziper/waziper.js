@@ -175,10 +175,6 @@ const WAZIPER = {
 			    		await Common.update_status_instance(instance_id, WA.user);
 			    		await WAZIPER.add_account(instance_id, session.team_id, WA.user, account);
 			    	}
-					
-					var groups = Object.values(await WA.groupFetchAllParticipating());
-					WAZIPER.webhook("","group");
-					if (groups)	WAZIPER.webhook(WA.user.id,groups);
 
 			    	break;
 
@@ -188,7 +184,7 @@ const WAZIPER = {
 		});
 
 		await WA.ev.on('messages.upsert', async(messages) => {
-			WAZIPER.webhook(instance_id, { event: "messages.upsert", data: messages });
+//			WAZIPER.webhook(instance_id, { event: "messages.upsert", data: messages });
 			if(messages.messages != undefined){
 				messages = messages.messages;
 
@@ -237,19 +233,49 @@ const WAZIPER = {
 		});
 
 		await WA.ev.on('contacts.update', async(contacts) => {
-			WAZIPER.webhook(instance_id, { event: "contacts.update", data:contacts  });
+//			WAZIPER.webhook(instance_id, { event: "contacts.update", data:contacts  });
 		});
 
 		await WA.ev.on('contacts.upsert', async(contacts) => {
-			WAZIPER.webhook(instance_id, { event: "contacts.upsert", data:contacts  });
+//			WAZIPER.webhook(instance_id, { event: "contacts.upsert", data:contacts  });
 		});
 
 		await WA.ev.on('messages.update', async(messages) => {
-			WAZIPER.webhook(instance_id, { event: "messages.update", data:messages  });
+//			WAZIPER.webhook(instance_id, { event: "messages.update", data:messages  });
 		});
 
-		await WA.ev.on('groups.update', async(group) => {
-			WAZIPER.webhook(instance_id, { event: "groups.update", data:group  });
+		await WA.ev.on('groups.update', async(groups) => {
+			WAZIPER.webhook(instance_id, { event: "groups.update", data:groups  });
+			if(groups != undefined){
+
+				if(groups.length > 0){
+					for (var i = 0; i < groups.length; i++) {
+						var group = groups[i];
+						var group_id = group.id;
+						//Add Groups for Export participants
+
+						if (sessions[instance_id].groups == undefined) {
+							sessions[instance_id].groups = [];
+						}
+
+						var newGroup = true;
+						sessions[instance_id].groups.forEach(async (groupE) => {
+							if (groupE.id == group_id) {
+								newGroup = false;
+							}
+						});
+
+						if (newGroup) {
+							sessions[instance_id].groups.push({ id: group.id, name: group.subject, size: group.size, desc: group.desc, participants: group.participants });
+						}
+
+
+
+
+					}
+				}
+			}
+
 		});
 
 		await WA.ev.on('creds.update', saveCreds);
@@ -266,8 +292,6 @@ const WAZIPER = {
 	},
 
 	instance: async function(access_token, instance_id, login, res, callback){
-		WAZIPER.webhook("","instance");
-
 		var time_now = Math.floor(new Date().getTime() / 1000);
 
 		if(verify_next < time_now){
@@ -460,9 +484,11 @@ const WAZIPER = {
             let currentAttempt = 0
             const interval = setInterval(() => {
                 if (currentAttempt > maxNumberOfAttempts - 1) {
+					WAZIPER.webhook("waitForOpenConnection",currentAttempt)
                     clearInterval(interval)
                     resolve(0)
                 } else if (socket.readyState === socket.OPEN) {
+					WAZIPER.webhook("waitForOpenConnection","open")
                     clearInterval(interval)
                     resolve(1)
                 }
@@ -473,20 +499,24 @@ const WAZIPER = {
 
 	get_groups: async function(instance_id, res){
 		var client = sessions[instance_id];	
-		//await WAZIPER.waitForOpenConnection(client);
-		//client.groupFetchAllParticipating().then((data) => {
-		//    WAZIPER.webhook("",data);
-		//}).catch ((err) => {
-		//    WAZIPER.webhook("",err);
-		//    client = WAZIPER.session(instance_id,true);
-		    //var groups = client.groupFetchAllParticipating();
-		    //WAZIPER.webhook("sss", groups);
-		//});
-		if( client != undefined && client.groups != undefined ){
+		
+		if(client != undefined ) {
+			if(client.groups == undefined ){
+				var readyState = await WAZIPER.waitForOpenConnection(client.ws);
+				if(readyState === 1){
+					sessions[ instance_id ].groupFetchAllParticipating().then((data) => {
+					}).catch ((err) => {
+						WAZIPER.webhook("error_Groups",err);
+					});
+				};
+			}
 			res.json({ status: 'success', message: 'Success', data: client.groups });
-		}else{
+		} else {
 			res.json({ status: 'success', message: 'Success', data: [] });
+
 		}
+
+		
 	},
 
 	bulk_messaging: async function(){
