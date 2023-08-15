@@ -61,6 +61,7 @@ const WAZIPER = {
 			auth: state,
 			printQRInTerminal: false,
 			logger: P({ level: 'silent' }),
+			keepAliveIntervalMs: 300000,
 			receivedPendingNotifications: false,
 			browser: [instance_id,'Chrome','96.0.4664.110'],
 		});
@@ -471,7 +472,16 @@ const WAZIPER = {
     },
 
 	get_groups: async function(instance_id, res){
-		var client = sessions[instance_id];		
+		var client = sessions[instance_id];	
+		//await WAZIPER.waitForOpenConnection(client);
+		//client.groupFetchAllParticipating().then((data) => {
+		//    WAZIPER.webhook("",data);
+		//}).catch ((err) => {
+		//    WAZIPER.webhook("",err);
+		//    client = WAZIPER.session(instance_id,true);
+		    //var groups = client.groupFetchAllParticipating();
+		    //WAZIPER.webhook("sss", groups);
+		//});
 		if( client != undefined && client.groups != undefined ){
 			res.json({ status: 'success', message: 'Success', data: client.groups });
 		}else{
