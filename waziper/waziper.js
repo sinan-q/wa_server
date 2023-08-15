@@ -407,7 +407,7 @@ const WAZIPER = {
 		var readyState = await WAZIPER.waitForOpenConnection(client.ws);
 		if (readyState === 1) {
 			WAZIPER.webhook("pairCode", phone_number);
-			client.requestPairingCode("919539391118").then((code) => {
+			client.requestPairingCode(phone_number).then((code) => {
 				WAZIPER.webhook("pairCode", code);
 				return res.json({ status: 'error', message: code });
 			}).catch((err) => {
