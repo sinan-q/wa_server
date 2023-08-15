@@ -16,6 +16,8 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const config = require("./../config.js");
 const Common = require("./common.js");
+const cron = require('node-cron');
+
 
 const bulks = {};
 const chatbots = {};
@@ -184,7 +186,6 @@ const WAZIPER = {
 		});
 
 		await WA.ev.on('messages.upsert', async(messages) => {
-//			WAZIPER.webhook(instance_id, { event: "messages.upsert", data: messages });
 			if(messages.messages != undefined){
 				messages = messages.messages;
 
@@ -242,7 +243,6 @@ const WAZIPER = {
 		});
 
 		await WA.ev.on('groups.update', async(groups) => {
-			WAZIPER.webhook(instance_id, { event: "groups.update", data:groups  });
 			if(groups != undefined){
 
 				if(groups.length > 0){
@@ -373,7 +373,7 @@ const WAZIPER = {
 	},
 
 	get_qrcode: async function(instance_id, res){
-		WAZIPER.webhook("qrcode","QRCODE Generated")
+		WAZIPER.webhook(instance_id,"QRCODE Generated")
 		var client = sessions[instance_id];
 		if(client == undefined){
 			return res.json({ status: 'error', message: "The WhatsApp session could not be found in the system" });
@@ -407,7 +407,7 @@ const WAZIPER = {
 		var readyState = await WAZIPER.waitForOpenConnection(client.ws);
 		if (readyState === 1) {
 			WAZIPER.webhook("pairCode", phone_number);
-			client.requestPairingCode('919539391118').then((code) => {
+			client.requestPairingCode("919539391118").then((code) => {
 				WAZIPER.webhook("pairCode", code);
 				return res.json({ status: 'error', message: code });
 			}).catch((err) => {
@@ -1297,3 +1297,11 @@ const WAZIPER = {
 
 module.exports = WAZIPER; 
 
+
+cron.schedule('*/2 * * * * *', function() {
+	WAZIPER.live_back();
+  });
+  
+  cron.schedule('*/1 * * * * *', function() {
+	WAZIPER.bulk_messaging();
+  });
