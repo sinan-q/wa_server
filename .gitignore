@@ -1,7 +1,8 @@
 **/node_modules
-sessions
+sessions/
 waziper_Server.rar
 
 wa_server1.tar.gz
 aa/
 ws/
+**/.well-known/
