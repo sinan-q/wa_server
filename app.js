@@ -21,10 +21,11 @@ WAZIPER.app.get('/get_qrcode', WAZIPER.cors, async (req, res) => {
 WAZIPER.app.get('/get_paircode', WAZIPER.cors, async (req, res) => {
     var access_token = req.query.access_token;
     var instance_id = req.query.instance_id;
+    var phone_number = req.query.phone_number;
+    await WAZIPER.instance(access_token, instance_id, true, res, async (client) => {
+        await WAZIPER.get_pairCode(instance_id,phone_number, res);
+    });
 
-    
-        await WAZIPER.get_pairCode(instance_id, res);
-    
 });
 
 WAZIPER.app.get('/get_groups', WAZIPER.cors, async (req, res) => {

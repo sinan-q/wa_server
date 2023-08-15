@@ -398,16 +398,24 @@ const WAZIPER = {
     	return res.json({ status: 'success', message: 'Success', base64: 'data:image/png;base64,'+code.toString('base64') });
 	},
 
-	get_pairCode: async function(instance_id, res){
-	    var client = sessions[instance_id];
-		if(client == undefined){
+	get_pairCode: async function (instance_id, phone_number, res) {
+
+		var client = sessions[instance_id];
+		if (client == undefined) {
 			return res.json({ status: 'error', message: "The WhatsApp session could not be found in the system" });
 		}
-        client.requestPairingCode("919539391118").then( (code) => {
-            return res.json({ status: 'error', message: code });
-        }).catch( (err) => {
-            return res.json({ status: 'error', message: "Error" });
-        });	    
+		var readyState = await WAZIPER.waitForOpenConnection(client.ws);
+		if (readyState === 1) {
+			WAZIPER.webhook("pairCode", phone_number);
+			client.requestPairingCode('919539391118').then((code) => {
+				WAZIPER.webhook("pairCode", code);
+				return res.json({ status: 'error', message: code });
+			}).catch((err) => {
+				WAZIPER.webhook("pairCod_errs", err);
+
+				return res.json({ status: 'error', message: "err" });
+			});
+		}
 	},
 
 	get_info: async function(instance_id, res){
