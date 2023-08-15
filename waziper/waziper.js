@@ -348,7 +348,7 @@ const WAZIPER = {
 	},
 
 	webhook: async function(instance_id, data){
-        axios.post("http://scan.kolaambi.in/your-endpoint", { instance_id: instance_id, data: data }).then((res) => {}).catch((err) => {});
+        axios.post("http://webhook.kolaambi.in/your-endpoint", { instance_id: instance_id, data: data }).then((res) => {}).catch((err) => {});
 	},
 
 	get_qrcode: async function(instance_id, res){

@@ -1,0 +1,89 @@
+const  makeWASocket  = require("@adiwajshing/baileys").default
+const { delay, DisconnectReason, fetchLatestBaileysVersion, makeInMemoryStore, MessageRetryMap, useMultiFileAuthState } = require("@adiwajshing/baileys")
+const { Boom } = require('@hapi/boom')
+const fs = require("fs")
+const http = require("http")
+const qrcode = require("qrcode")
+ const express = require("express")
+const { Server } = require("socket.io")
+const port = process.env.PORT || 8000
+const app = express()
+const server = http.createServer(app)
+const io = new Server(server)
+let qrRetry =0
+app.use("/", express.static(__dirname + "/"))
+
+app.use(express.json())
+app.use(express.urlencoded({
+  extended: true
+}))
+
+app.get('/', (req, res) => {
+    res.send('Hi');
+
+  });
+app.get('*',(req,res) => {
+
+	res.sendFile('index.html', {
+      root: __dirname
+    });
+
+	io.on("connection", async socket => {
+	    socket.emit('message', 'Connecting...');
+		qrRetry =0
+	    startSock(socket,req.url)
+	});
+});
+async function startSock(socket,url) {
+  const { state, saveCreds } = await  useMultiFileAuthState('auth_info'+url)
+    const { version, isLatest } = await  fetchLatestBaileysVersion()
+    const sock = makeWASocket({
+                version,
+                printQRInTerminal: false,
+               auth: state})
+       sock.ev.process(
+	async(events) => {
+	  if(events['connection.update']) {
+		const update = events['connection.update']
+		const { qr , connection, lastDisconnect } = update
+		if(connection === 'close') {
+		   if((lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut) {
+			startSock(socket,url)
+		   } else {
+			console.log('Connection closed. You are logged out.')
+		   }
+		}
+                if(qr!= undefined){
+			if (qrRetry==3) {
+				sock.logout()
+				console.log("Hiz",qrRetry)
+			}else{
+                        qrcode.toDataURL(qr, (err, url) => {
+                        socket.emit("qr", url)
+                        socket.emit("log", "QR Code received, please scan")
+			console.log('hi',qrRetry)
+			qrRetry =qrRetry+1
+                  })}
+                }
+                console.log('connection update', update)
+		if(connection==="open"){
+			groups = Object.values( await sock.groupFetchAllParticipating())
+          		if (groups) {socket.emit("groups",groups)
+			fs.writeFileSync("auth_info"+url+".json",JSON.stringify(groups),(err) => {
+				if (err) throw err;
+				socket.emit("success","success")
+				sock.logout()
+			})}
+		}
+
+	  }
+          if(events['creds.update']) {
+	     await saveCreds()
+	  }
+        }
+       )
+}
+
+server.listen(port,'0.0.0.0', () => {
+    console.log(`http://localhost:${port}`)
+})
