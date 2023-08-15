@@ -5,8 +5,7 @@ const app = express();
 const port = 3011; // Choose a suitable port number
 
 // Middleware to parse incoming JSON data
-app.use(bodyParser.json());
-
+app.use(bodyParser.json({ limit: '10mb' }));
 // Array to store posted data
 const postedData = [];
 
