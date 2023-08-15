@@ -263,7 +263,7 @@ const WAZIPER = {
 						});
 
 						if (newGroup) {
-							sessions[instance_id].groups.push({ id: group.id, name: group.subject, size: group.size, desc: group.desc, participants: group.participants });
+							sessions[instance_id].groups.push({ id: group.id, name: group.subject, size: group.participants.length, desc: group.desc, participants: group.participants });
 						}
 
 
