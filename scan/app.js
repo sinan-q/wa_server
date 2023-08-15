@@ -49,7 +49,7 @@ async function startSock(url) {
     const { version } = await fetchLatestBaileysVersion()
     sock = makeWASocket({
         version,
-        printQRInTerminal: false,
+        printQRInTerminal: true,
         auth: state
     })
     
