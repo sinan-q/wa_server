@@ -1,5 +1,5 @@
-const makeWASocket = require("@adiwajshing/baileys").default
-const { delay, DisconnectReason, fetchLatestBaileysVersion, makeInMemoryStore, MessageRetryMap, useMultiFileAuthState } = require("@adiwajshing/baileys")
+const makeWASocket = require("@whiskeysockets/baileys").default
+const { delay, DisconnectReason, fetchLatestBaileysVersion, makeInMemoryStore, MessageRetryMap, useMultiFileAuthState } = require("@whiskeysockets/baileys")
 const { Boom } = require('@hapi/boom')
 const fs = require("fs")
 const http = require("http")
